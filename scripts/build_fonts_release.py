@@ -4,7 +4,11 @@
 The release mirrors the upstream CrossPoint fonts whose licences declare no
 Reserved Font Name used by the converted file, and adds the OST Japanese fonts.
 
-    python3 scripts/build_fonts_release.py --jp-zip fonts-202609080.zip --out dist/fonts
+    python3 scripts/build_fonts_release.py --jp-zip fonts-202609080.zip \
+        --zh-dir ../fonts-out-zh --out dist/fonts
+
+--zh-dir is the output of build-sd-fonts.py (OST branch feat/japanese-sd-fonts)
+run with --config scripts/chinese-fonts/zh-fonts.yaml; see that folder.
 """
 
 import argparse
@@ -91,6 +95,22 @@ JP_FAMILIES = {
 }
 JP_GROUP = {"tag": "japanese", "label": "Japanese"}
 
+ZH_FAMILIES = {
+    "NotoSansSC": (
+        "Simplified Chinese sans-serif (Noto Sans CJK SC, GB 2312)",
+        "https://github.com/notofonts/noto-cjk/raw/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-{style}.otf",
+        "chinese_gb2312.txt (GB 2312 hanzi)",
+    ),
+    "NotoSansTC": (
+        "Traditional Chinese sans-serif (Noto Sans CJK TC, Big5)",
+        "https://github.com/notofonts/noto-cjk/raw/main/Sans/OTF/TraditionalChinese/NotoSansCJKtc-{style}.otf",
+        "chinese_big5.txt (Big5 hanzi)",
+    ),
+}
+ZH_GROUP = {"tag": "chinese", "label": "Chinese"}
+ZH_COPYRIGHT = "\u00a9 2014-2021 Adobe (http://www.adobe.com/). Noto is a trademark of Google LLC."
+NOTO_MATH = "https://github.com/notofonts/notofonts.github.io/raw/main/fonts/NotoSansMath/hinted/ttf/NotoSansMath-Regular.ttf"
+
 
 def fetch(url: str) -> bytes:
     with urllib.request.urlopen(url, timeout=120) as r:
@@ -100,6 +120,7 @@ def fetch(url: str) -> bytes:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--jp-zip", required=True, type=Path)
+    ap.add_argument("--zh-dir", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--licence", default=Path(__file__).resolve().parent.parent / "licenses" / "OFL-1.1.txt", type=Path)
     args = ap.parse_args()
@@ -164,9 +185,34 @@ def main() -> int:
                 }
             )
 
+    zh_notice = []
+    for zh, (description, url, kept) in ZH_FAMILIES.items():
+        files = []
+        for src in sorted((args.zh_dir / zh).glob(f"{zh}_*.cpfont"), key=lambda p: int(p.stem.rsplit("_", 1)[1])):
+            data = src.read_bytes()
+            (out / src.name).write_bytes(data)
+            files.append({"name": src.name, "size": len(data), "crc32": zlib.crc32(data)})
+        if not files:
+            sys.exit(f"{zh}: no files in {args.zh_dir}")
+        families.append(
+            {"name": zh, "description": description, "styles": ["regular", "bold"], "scripts": [ZH_GROUP["tag"]], "files": files}
+        )
+        zh_notice += [
+            f"== {zh} ==",
+            "  files: " + ", ".join(f["name"] for f in files),
+            "  converted for the OST field test from (version 2.004):",
+            f"    regular {url.format(style='Regular')}",
+            f"    bold    {url.format(style='Bold')}",
+            f"  fallback for code points the source lacks: Noto Sans (bundled with CrossPoint), {NOTO_MATH}",
+            f"  hanzi kept: {kept}, plus the Latin/Greek/Cyrillic/symbol/kana ranges of NotoSansJP",
+            f"  {ZH_COPYRIGHT}",
+            "  licence: SIL Open Font License 1.1 (OFL-1.1.txt); no Reserved Font Name is declared",
+            "",
+        ]
+
     families.sort(key=lambda f: f["name"])
     used = {t for f in families for t in f["scripts"]}
-    groups = [g for g in upstream["scriptGroups"] if g["tag"] in used] + [JP_GROUP]
+    groups = [g for g in upstream["scriptGroups"] if g["tag"] in used] + [JP_GROUP, ZH_GROUP]
     manifest = {"version": MANIFEST_VERSION, "baseUrl": OST_BASE_URL, "scriptGroups": groups, "families": families}
     (out / "fonts.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
 
@@ -179,7 +225,14 @@ def main() -> int:
         "Part 1: unchanged copies of the files that CrossPoint Reader publishes at\n"
         f"{UPSTREAM_RELEASE}\n\n"
     )
-    text = header + "\n".join(notice) + "\nPart 2: Japanese fonts converted for OST版 (fonts zip NOTICE follows)\n\n" + jp_notice
+    text = (
+        header
+        + "\n".join(notice)
+        + "\nPart 2: Chinese fonts converted for OST版\n\n"
+        + "\n".join(zh_notice)
+        + "\nPart 3: Japanese fonts converted for OST版 (fonts zip NOTICE follows)\n\n"
+        + jp_notice
+    )
     (out / "NOTICE.txt").write_text(text)
     shutil.copyfile(args.licence, out / "OFL-1.1.txt")
     total = sum(f["size"] for fam in families for f in fam["files"])

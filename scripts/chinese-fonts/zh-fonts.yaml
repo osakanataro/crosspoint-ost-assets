@@ -1,0 +1,26 @@
+# Chinese UI/reading fonts for the OST field-test site (crosspoint-ost-assets).
+# Same recipe as NotoSansJP in sd-fonts.yaml, with the hanzi cut to GB 2312 / Big5.
+families:
+  - name: NotoSansSC
+    description: "Sans-serif Simplified Chinese (GB 2312)"
+    intervals: ascii,latin1,punctuation,greek,cyrillic,ipa-chars,symbols,cjk,cjk-symbols
+    codepoints_file:
+      - codepoints/chinese_gb2312.txt
+    extra_fallbacks:
+      - {url: "https://github.com/notofonts/notofonts.github.io/raw/main/fonts/NotoSansMath/hinted/ttf/NotoSansMath-Regular.ttf"}
+    sizes: [8, 10, 12, 14, 16, 18]
+    styles:
+      regular:    {url: "https://github.com/notofonts/noto-cjk/raw/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf"}
+      bold:       {url: "https://github.com/notofonts/noto-cjk/raw/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Bold.otf"}
+
+  - name: NotoSansTC
+    description: "Sans-serif Traditional Chinese (Big5)"
+    intervals: ascii,latin1,punctuation,greek,cyrillic,ipa-chars,symbols,cjk,cjk-symbols
+    codepoints_file:
+      - codepoints/chinese_big5.txt
+    extra_fallbacks:
+      - {url: "https://github.com/notofonts/notofonts.github.io/raw/main/fonts/NotoSansMath/hinted/ttf/NotoSansMath-Regular.ttf"}
+    sizes: [8, 10, 12, 14, 16, 18]
+    styles:
+      regular:    {url: "https://github.com/notofonts/noto-cjk/raw/main/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf"}
+      bold:       {url: "https://github.com/notofonts/noto-cjk/raw/main/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Bold.otf"}
