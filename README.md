@@ -19,7 +19,8 @@ Wi-Fi: SD-card fonts and UI language packs. The files are release assets.
 - 本家 CrossPoint Reader が [crosspoint-fonts](https://github.com/crosspoint-reader/crosspoint-fonts/releases/tag/sd-fonts-m1-b4)
   で配っている書体のうち、許諾で名前が予約されていない（OFL の Reserved Font Name を変換後の名前が使わない）17書体を、
   そのまま複製しています。CRC は本家の一覧と照合済みです。
-- 日本語3書体（BIZUDGothic、BIZUDMincho、NotoSansJP）は OST版の `fonts-202609080.zip` と同じものです。
+- 日本語3書体（BIZUDGothic、BIZUDMincho、NotoSansJP）は OST版の `fonts-202610200.zip` と同じものです。
+  本家へ提案中の枝 `feat/japanese-sd-fonts-upstream` の変換道具で作りました（2026-10-20 差し替え）。
 - 中国語2書体（NotoSansSC＝簡体字、NotoSansTC＝繁体字）は Noto Sans CJK SC/TC 2.004 から作りました。
   漢字は GB 2312（6,763字）と Big5（13,053字）に絞っています。作り方は `scripts/chinese-fonts/` にあります。
 - 書体ごとの著作権者と取得元は `NOTICE.txt` にあります。すべて SIL Open Font License 1.1 です。
